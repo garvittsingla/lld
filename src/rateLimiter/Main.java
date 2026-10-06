@@ -1,8 +1,10 @@
 package rateLimiter;
 
+import rateLimiter.enums.UserTier;
 import rateLimiter.limiter.RateLimiter;
 import rateLimiter.limiter.TokenBucketAlgorithm;
 import rateLimiter.models.RateLimitConfig;
+import rateLimiter.models.User;
 
 public class Main {
 
@@ -14,12 +16,11 @@ public class Main {
         RateLimiter rateLimiter =
                 new TokenBucketAlgorithm(config);
 
-        String userId = "user1";
+        User user = new User("garvit", UserTier.FREE);
 
         for (int i = 1; i <= 10; i++) {
 
-            boolean allowed =
-                    rateLimiter.allowRequest(userId);
+            boolean allowed = rateLimiter.allowRequest(user);
 
             System.out.println(
                     "Request " + i + ": " + allowed

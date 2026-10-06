@@ -2,27 +2,29 @@ package rateLimiter.limiter;
 
 import rateLimiter.models.RateLimitConfig;
 import rateLimiter.models.TokenBucketState;
+import rateLimiter.models.User;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TokenBucketAlgorithm implements RateLimiter{
+public class TokenBucketAlgorithm implements RateLimiter {
 
-    private final RateLimitConfig config;
-    private final Map<String, TokenBucketState> buckets =
-            new HashMap<>();
+    private final Map<User,TokenBucketState> buckets = new HashMap<>();
+    private RateLimitConfig config;
 
-    public TokenBucketAlgorithm(RateLimitConfig config) {
+    public TokenBucketAlgorithm(RateLimitConfig config){
         this.config = config;
     }
 
     @Override
-    public boolean allowRequest(String userId) {
+    public boolean allowRequest(User user) {
+
         long now = System.currentTimeMillis();
 
         TokenBucketState state = buckets.computeIfAbsent(
-                userId,
-                id -> new TokenBucketState(
+               user,
+                user1 -> new TokenBucketState(
                         config.getMaxrequests(),
                         now
                 )
@@ -32,21 +34,19 @@ public class TokenBucketAlgorithm implements RateLimiter{
 
         double elapsedSeconds = elapsedTime / 1000.0;
 
-        double refillRate =
-                (double) config.getMaxrequests()
-                        / config.getWindowSeconds();
+        double refillRate = (double)config.getMaxrequests() / config.getWindowSeconds();
 
-        double tokensToAdd = elapsedSeconds * refillRate;
+        double tokensToAdd = refillRate * elapsedSeconds;
 
         double newTokens = Math.min(
                 config.getMaxrequests(),
-                state.getTokens() + tokensToAdd
+                tokensToAdd
         );
 
         state.setTokens(newTokens);
         state.setLastRefillTime(now);
 
-        if (state.getTokens() < 1) {
+        if(state.getTokens() < 1){
             return false;
         }
 

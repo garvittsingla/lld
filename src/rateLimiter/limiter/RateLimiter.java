@@ -1,5 +1,7 @@
 package rateLimiter.limiter;
 
+import rateLimiter.models.User;
+
 public interface RateLimiter {
-    boolean allowRequest(String userId);
+    boolean allowRequest(User user);
 }
